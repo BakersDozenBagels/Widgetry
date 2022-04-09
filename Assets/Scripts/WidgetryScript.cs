@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using HarmonyLib;
-using KModkit;
 using UnityEngine;
 
 #if !UNITY_EDITOR
@@ -143,12 +144,12 @@ public class WidgetryScript : MonoBehaviour
         WidgetryWidget van = _vanillaWidgets.PickRandom();
         //WidgetryWidget van = _vanillaWidgets[3];
         foreach(WidgetryWidget w in _vanillaWidgets)
-                w.gameObject.SetActive(false);
+            w.gameObject.SetActive(false);
         van.gameObject.SetActive(true);
         yield return van.GetQuery();
         WidgetryWidget mod = _moddedWidgets.PickRandom();
         foreach(WidgetryWidget w in _moddedWidgets)
-                w.gameObject.SetActive(false);
+            w.gameObject.SetActive(false);
         mod.gameObject.SetActive(true);
         yield return mod.GetQuery();
     }
@@ -170,5 +171,31 @@ public class WidgetryScript : MonoBehaviour
     public void ComponentLog(string obj)
     {
         Debug.LogFormat("[Widgetry #{0}] {1}", _id, obj);
+    }
+
+#pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"""!{0} W"" to press the button labeled W. ""!{0} D"" to press the button labeled D.";
+#pragma warning restore 414
+    private IEnumerator ProcessTwitchCommand(string command)
+    {
+        if(Regex.IsMatch(command.ToLowerInvariant(), @"\s*w\s*"))
+        {
+            yield return null;
+            _buttonWhatsit.OnInteract();
+        }
+        else if(Regex.IsMatch(command.ToLowerInvariant(), @"\s*d\s*"))
+        {
+            yield return null;
+            _buttonDoodad.OnInteract();
+        }
+    }
+
+    private IEnumerator TwitchHandleForcedSolve()
+    {
+        if(GetComponentsInChildren<WidgetryIndicator>().Length == 0)
+            _buttonDoodad.OnInteract();
+        else
+            _buttonWhatsit.OnInteract();
+        yield break;
     }
 }
